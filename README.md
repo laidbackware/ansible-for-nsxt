@@ -1,5 +1,8 @@
 # Ansible for NSX-T
 
+# Fork
+This branch will act as a stable alternative the upstream VMware master and will contain all newly added features which have not yet been accepted into master.
+
 # Overview
 This repository contains NSX-T Ansible Modules, which one can use with
 Ansible to work with [VMware NSX-T Data Center][vmware-nsxt].
