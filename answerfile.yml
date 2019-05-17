@@ -149,7 +149,7 @@ compute_managers:
   origin_type: vCenter
   credential_type: UsernamePasswordLoginCredential
   username: "administrator@vsphere.local"
-  password: "Admin!23"
+  password: "Admin!123"
   thumbprint: "46:1E:31:DD:0B:37:4C:F0:91:5B:49:A1:A1:94:B5:DF:82:93:90:52:D9:68:0F:86:C8:CA:6C:34:CB:82:D7:D5"
 
 
