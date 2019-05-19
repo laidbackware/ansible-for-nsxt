@@ -197,29 +197,3 @@ nsxt_ns_groups:
           tag: 'T1'
   state: present
 
-services:
-- display_name: "Custom"
-  nsservice_element:
-  - service:
-      protocol: ICMPv4
-      resource_type: ICMPTypeNSService
-  - service:
-      resource_type: IGMPTypeNSService
-  - service:
-      protocol_number: 0
-      resource_type: IPProtocolNSService
-  - service:
-      protocol_number: 1
-      resource_type: IPProtocolNSService
-  - service:
-      alg: ORACLE_TNS
-      destination_ports:
-      - '1521'
-      resource_type: ALGTypeNSService
-  - service:
-      destination_ports:
-      - '8080'
-      - '8090'
-      - '8091'
-      l4_protocol: TCP
-      resource_type: L4PortSetNSService
