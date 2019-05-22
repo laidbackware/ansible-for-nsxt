@@ -14,13 +14,13 @@ These modules are maintained by [VMware](https://www.vmware.com/).
 
 Documentation on the NSX platform can be found at the [NSX-T Documentation page](https://docs.vmware.com/en/VMware-NSX-T/index.html)
 
+# Fork
+This fork contains a number of modules enabled GitOps workflows for managing the NSX-T firewall. All complete feature branchs have had pull requests made to the upstream repo.
+
+The master branch will contain all feature complete and tested module. The dev_security branch will contain all work in progress modules merged from feature branches.
+
 ### Supported NSX Objects/Workflows
 The modules in this repository are focused on enabling automation of installation workflows of NSX-T.
-
-### Branch Information
-This repository has different branches with each branch providing support for upto a specific NSX-T release. Below is the list:
-* v1.1.0: NSX-T 2.4
-* v1.0.0: NSX-T 2.3
 
 #### Deployment and installation modules
 
@@ -72,7 +72,7 @@ These modules support ansible version 2.7 and onwards.
 
 * PyVmOmi - Python library for vCenter api.
 
-* OVF Tools - Ovftool is used for ovf deployment. 
+* OVF Tools - Ovftool is used for ovf deployment. Required if installing a Manager.
 
 
 # Build & Run
