@@ -307,8 +307,7 @@ def main():
                                      ignore_errors=True)
             except Exception as err:
                 module.fail_json(msg="Failed to add service. Request body [%s]. Error[%s]." % (request_data, to_native(err)))
-
-            time.sleep(0.5)
+            time.sleep(5)
             module.exit_json(changed=True, id=resp["id"], body= str(resp), message="Service with display name %s created." % 
                              module.params['display_name'])
         else:
@@ -324,7 +323,7 @@ def main():
             except Exception as err:
                 module.fail_json(msg="Failed to update service with id %s. Request body [%s]. Error[%s]." % 
                                  (id, request_data, to_native(err)))
-            time.sleep(0.5)
+            time.sleep(5)
             module.exit_json(changed=True, id=resp["id"], body= str(resp), message="Service with id %s updated." % id)
 
     elif state == 'absent':

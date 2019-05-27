@@ -807,7 +807,7 @@ def main():
                             operation=dict(required=True, type='str', choices=['insert_top', 'insert_bottom', 
                                                                                'insert_after', 'insert_before']),
                             display_name=dict(required=True, type='str')),
-                        section_type=dict(required=False, choices=['LAYER3'], default='LAYER2, LAYER3'),
+                        section_type=dict(required=False, choices=['LAYER2', 'LAYER3'], default='LAYER3'),
                         state=dict(required=True, choices=['present', 'absent']),
                         stateful=dict(required=True, type='bool'),
                         tags=dict(required=False, type='list',
