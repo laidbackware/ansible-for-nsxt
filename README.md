@@ -15,11 +15,11 @@ These modules are maintained by [VMware](https://www.vmware.com/).
 Documentation on the NSX platform can be found at the [NSX-T Documentation page](https://docs.vmware.com/en/VMware-NSX-T/index.html)
 
 # Fork
-This fork contains a number of modules enabled GitOps workflows for managing the NSX-T firewall. All complete feature branchs have had pull requests made to the upstream repo.
+This fork contains a number of modules enablint GitOps workflows for managing the NSX-T firewall. All complete feature branchs have had pull requests made to the upstream VMware repo.
 
 The master branch will contain all feature complete and tested module. The dev_security branch will contain all work in progress modules merged from feature branches.
 
-### Supported NSX Objects/Workflows
+# Supported NSX Objects/Workflows
 The modules in this repository are focused on enabling automation of installation workflows of NSX-T.
 
 #### Deployment and installation modules
