@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 # 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -46,6 +47,14 @@ options:
         description: 'Display name'
         required: true
         type: str
+    description:
+        description: 'Description of the resource'
+        required: false
+        type: str
+    tags:
+        description: 'Opaque identifier meaningful to the API user'
+        required: false
+        type: list
     state:
         choices:
             - present
@@ -63,9 +72,11 @@ EXAMPLES = '''
     hostname: "10.192.167.137"
     username: "admin"
     password: "Admin!23Admin"
-    display_name: "IPBlock-Tenant-1",
-    description: "IPBlock-Tenant-1 Description",
+    validate_certs: False
+    display_name: "IPBlock-Tenant-1"
+    description: "IPBlock-Tenant-1 Description"
     cidr: "192.168.0.0/16"
+    state: present
 '''
 
 RETURN = '''# '''
@@ -112,6 +123,8 @@ def main():
   argument_spec = vmware_argument_spec()
   argument_spec.update(display_name=dict(required=True, type='str'),
                         cidr=dict(required=True, type='str'),
+                        description=dict(required=False, type='str'),
+                        tags=dict(required=False, type='list'),
                         state=dict(required=True, choices=['present', 'absent']))
 
   module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)

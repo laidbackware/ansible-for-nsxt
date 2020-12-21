@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -45,6 +46,10 @@ options:
     display_name:
         description: Display name
         required: true
+        type: str
+    description:
+        description: Description of the resource
+        required: false
         type: str
     enabled:
         description: 'The enabled property specifies the status of NIOC feature.
@@ -94,6 +99,10 @@ options:
         description: Enabled or disabled sending LLDP packets
         required: false
         type: boolean
+    tags:
+        description: Opaque identifier meaninful to API user
+        required: false
+        type: Array of Tag
     state:
         choices:
         - present
@@ -108,21 +117,6 @@ options:
             required: true
             type: array of Uplink
         description: Default TeamingPolicy associated with this UplinkProfile
-        name:
-            description: An uplink teaming policy of a given name defined in UplinkHostSwitchProfile.
-                         The names of all NamedTeamingPolicies in an UplinkHostSwitchProfile 
-                         must be different, but a name can be shared by different
-                         UplinkHostSwitchProfiles. Different TransportNodes can use different 
-                         NamedTeamingPolicies having the same name in different 
-                         UplinkHostSwitchProfiles to realize an uplink teaming policy on a
-                         logical switch. An uplink teaming policy on a logical switch can be any
-                         policy defined by a user; it does not have to be a single type of FAILOVER
-                         or LOADBALANCE. It can be a combination of types, for instance, a user can 
-                         define a policy with name "MyHybridTeamingPolicy" as "FAILOVER on all ESX 
-                         TransportNodes and LOADBALANCE on all KVM TransportNodes". The name is the 
-                         key of the teaming policy and can not be changed once assigned.
-            required: true
-            type: str
         policy:
             description: Teaming policy
             required: true
@@ -191,6 +185,36 @@ def get_uplink_profile_from_display_name(module, manager_url, mgr_username, mgr_
             return host_switch_profile
     return None
 
+def id_exist_in_list_dict_obj(key, list_obj1, list_obj2):
+    all_id_presents = False
+    if len(list_obj1) != len(list_obj2):
+        return all_id_presents
+    for dict_obj1 in list_obj1:
+        if dict_obj1.__contains__(key):
+            for dict_obj2 in list_obj2:
+                if dict_obj2.__contains__(key) and dict_obj1[key] == dict_obj2[key]:
+                    all_id_presents = True
+                    continue
+            if not all_id_presents:
+                return False
+    return True
+def cmp_dict(dict1, dict2): # dict1 contain dict2
+    #print dict2
+    for k2, v2 in dict2.items():
+        found = False
+        if k2 not in dict1:
+            continue
+        if type(v2) != list and dict1[k2] != dict2[k2]:
+            return False
+            
+        for obj2 in v2:
+            for obj1 in dict1[k2]:
+                if all(item in obj1.items() for item in obj2.items()):
+                           found = True
+        if not found:
+            return False
+    return True
+
 def check_for_update(module, manager_url, mgr_username, mgr_password, validate_certs, profile_params):
     existing_profile = get_uplink_profile_from_display_name(module, manager_url, mgr_username, mgr_password, validate_certs, profile_params['display_name'])
     if existing_profile is None:
@@ -201,12 +225,43 @@ def check_for_update(module, manager_url, mgr_username, mgr_password, validate_c
     if existing_profile.__contains__('transport_vlan') and profile_params.__contains__('transport_vlan') and \
         existing_profile['transport_vlan'] != profile_params['transport_vlan']:
         return True
+    if profile_params.__contains__('lags') and profile_params['lags']:
+       existing_lags = existing_profile['lags']
+       new_lags = profile_params['lags']
+       sorted_existing_lags = sorted(existing_lags, key = lambda i: i['name'])
+       sorted_new_lags = sorted(new_lags, key = lambda i: i['name'])
+       if len(sorted_existing_lags) != len(sorted_new_lags):
+          return True
+       both_lags_same = True
+       for i in range(len(sorted_existing_lags)):
+           diff_obj = {k: sorted_existing_lags[i][k] for k in sorted_existing_lags[i] if k in sorted_new_lags[i] and sorted_existing_lags[i][k] != sorted_new_lags[i][k]}
+           del diff_obj['uplinks']
+           if not cmp_dict(diff_obj, sorted_new_lags[i]):
+              both_lags_same = False
+       if not both_lags_same:
+          return True
+    if profile_params.__contains__('named_teamings'):
+       existing_teamings = existing_profile['named_teamings']
+       new_teamings = profile_params['named_teamings']
+       sorted_existing_teamings = sorted(existing_teamings, key = lambda i: i['name'])
+       sorted_new_teamings = sorted(new_teamings, key = lambda i: i['name'])
+       if len(sorted_existing_teamings) != len(sorted_new_teamings):
+          return False
+       both_teamings_same = True
+       for i in range(len(sorted_existing_teamings)):
+           diff_obj = {k: sorted_existing_teamings[i][k] for k in sorted_existing_teamings[i] if k in sorted_new_teamings[i] and sorted_existing_teamings[i][k] != sorted_new_teamings[i][k]}
+           if not cmp_dict(diff_obj, sorted_new_teamings[i]):
+              both_teamings_same = False
+       if not both_teamings_same:
+          return True
     return False
+  
 
 def main():
   argument_spec = vmware_argument_spec()
   argument_spec.update(display_name=dict(required=True, type='str'),
                         transport_vlan=dict(required=False, type='int'),
+                        description=dict(required=False, type='str'),
                         enabled=dict(required=False, type='boolean'),
                         host_infra_traffic_res=dict(required=False, type='list'),
                         overlay_encap=dict(required=False, type='str'),
@@ -218,9 +273,9 @@ def main():
                         teaming=dict(required=True, type='dict',
                         policy=dict(required=True, type='str'),
                         standby_list=dict(required=False, type='list'),
-                        name=dict(required=True, type='str'),
                         active_list=dict(required=True, type='list')),
                         lags=dict(required=False, type='list'),
+                        tags=dict(required=False, type='list'),
                         resource_type=dict(required=True, type='str', choices=['UplinkHostSwitchProfile']),
                         state=dict(required=True, choices=['present', 'absent']))
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -60,6 +61,14 @@ options:
         description: 'Opaque identifiers meaningful to the API user'
         required: false
         type: str
+    description:
+        description: 'description of the resource'
+        required: false
+        type: str
+    ip_release_delay:
+        description: 'IP address release delay'
+        required: false
+        type: int
 
     
 '''
@@ -132,7 +141,9 @@ def main():
   argument_spec = vmware_argument_spec()
   argument_spec.update(display_name=dict(required=True, type='str'),
                         subnets=dict(required=False, type='list'),
-                        tags=dict(required=False, type='str'),
+                        tags=dict(required=False, type='list'),
+                        description=dict(required=False, type='str'),
+                        ip_release_delay=dict(required=False, type='int'),
                         state=dict(required=True, choices=['present', 'absent']))
 
   module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)

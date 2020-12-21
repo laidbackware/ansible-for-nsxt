@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -139,6 +140,14 @@ options:
         description: Name of logical Switch
         required: true
         type: str
+    description:
+        description: 'Description of the resource'
+        required: false
+        type: str
+    tags:
+        description: 'Opaque identifiers meaningful to the API user'
+        required: false
+        type: str
     state:
         choices:
         - present
@@ -148,7 +157,7 @@ options:
                      'absent' is used to delete resource."
         required: true
     switching_profiles:
-        description: Switching Profiles
+        description: List of Switching Profiles name and type
         required: false
         type: list 
 '''
@@ -237,7 +246,7 @@ def update_params_with_id (module, manager_url, mgr_username, mgr_password, vali
         for host_switch_profile in host_switch_profiles:
             profile_obj = {}
             profile_obj['value'] = get_id_from_display_name (module, manager_url, mgr_username, mgr_password, validate_certs,
-                                                    "/host-switch-profiles", host_switch_profile['name'])
+                                                    "/switching-profiles", host_switch_profile['name'])
             profile_obj['key'] = host_switch_profile['type']
             host_switch_profile_ids.append(profile_obj)
     logical_port_params['switching_profile_ids'] = host_switch_profile_ids
@@ -294,6 +303,8 @@ def main():
                         extra_configs=dict(required=False, type='list'),
                         address_bindings=dict(required=False, type='list'),
                         ignore_address_bindings=dict(required=False, type='list'),
+                        description=dict(required=False, type='str'),
+                        tags=dict(required=False, type='list'),
                         state=dict(required=True, choices=['present', 'absent']))
 
   module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)

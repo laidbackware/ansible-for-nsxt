@@ -3,3 +3,9 @@
 .gitignore
 
 *_dev.yml
+# build products...
+*.py[co]
+# Mac OS X stuff...
+.DS_Store
+# test output
+*.retry

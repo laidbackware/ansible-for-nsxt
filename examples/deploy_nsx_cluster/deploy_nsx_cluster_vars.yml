@@ -1,3 +1,5 @@
+# Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 #
 # Variables file for deploying NSX-T Cluster
 #
@@ -7,14 +9,16 @@
   # Common NSX Appliance variables
   #
   "nsx_username": "admin",
-  "nsx_password": "myPassword!myPassword!",
+  "nsx_password": "myPassword1!myPassword1!",
   "validate_certs": False,
+  "state": "present",
 
   #
   # OVA/OVF Information. Path can be on local file system or a HTTP URL
   #
-  "nsx_ova_path": "/home/vmware",
-  "nsx_ova": "nsx-unified-appliance-2.4.0.0.0.12456291.ova",
+  "nsx_ova_path": "/media/disk2",
+#  "nsx_ova": "nsx-unified-appliance-3.0.0.0.0.15946739.ova",
+  "nsx_ova": "nsx-unified-appliance-3.0.1.0.0.16404476.ova",
 
   #
   # Common network details. This assumes all NSX appliance nodes are on the
@@ -23,9 +27,9 @@
   # use them in the playbooks instead.
   #
   "domain": "mylab.local",
-  "netmask": "255.255.224.0",
-  "gateway": "10.114.200.1",
-  "dns_server": "10.114.200.8",
+  "netmask": "255.255.255.224",
+  "gateway": "10.114.200.33",
+  "dns_server": "10.116.1.201",
   "ntp_server": "10.114.200.8",
 
   #
@@ -34,37 +38,35 @@
   #
   "nsx_node1": {
     "hostname": "mynsx-01.mylab.local",
-    "mgmt_ip": "10.114.200.11",
+    "mgmt_ip": "10.114.200.41",
     "datacenter": "Datacenter",
     "cluster": "Management",
-    "datastore": "datastore1",
+    "datastore": "datastore36",
     "portgroup": "VM Network"
   },
 
   #
   # Additional nodes defined as an array so that its easier to iterate
   # through them in the playbook.
-  # NOTE: The Datacenter/Cluster/Datastore/Network requires the vCenter MOID
-  # (Module Object ID) and not the name
   #
   "additional_nodes": [
     {
       "hostname": "mynsx-02.mylab.local",
-      "mgmt_ip": "10.114.200.12",
+      "mgmt_ip": "10.114.200.42",
       "prefix": "27",
-      "datacenter_moid": "datacenter-2",
-      "cluster_moid": "domain-c7",
-      "datastore_moid": "datastore-15",
-      "portgroup_moid": "network-16"
+      "datacenter": "Datacenter",
+      "cluster": "Management",
+      "datastore": "datastore36",
+      "portgroup": "VM Network"
     },
     {
       "hostname": "mynsx-03.mylab.local",
-      "mgmt_ip": "10.114.200.13",
+      "mgmt_ip": "10.114.200.43",
       "prefix": "27",
-      "datacenter_moid": "datacenter-2",
-      "cluster_moid": "domain-c9",
-      "datastore_moid": "datastore-21",
-      "portgroup_moid": "network-16"
+      "datacenter": "Datacenter",
+      "cluster": "Management",
+      "datastore": "datastore36",
+      "portgroup": "VM Network"
     }
   ],
 
@@ -77,8 +79,17 @@
       "mgmt_ip": "10.114.200.6",
       "origin_type": "vCenter",
       "credential_type": "UsernamePasswordLoginCredential",
-      "username": "administrator@mylab.local",
-      "password": "myPassword!"
+      "username": "administrator@madhu.local",
+      "password": "VMware1!"
     }
-  ]
+  ],
+
+  #
+  # NSX-T licenses
+  #
+  "nsxt_licenses": [
+    {
+      "license_key": "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+    }
+  ],
 }

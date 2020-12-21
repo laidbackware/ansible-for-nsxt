@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 # 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -21,11 +22,8 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = '''
 ---
 module: nsxt_logical_switches_facts
-short_description: List All Logical Ports
-description: Returns information about all configured logical switch ports. Logical
-             switch ports connect to VM virtual network interface cards (NICs). Each
-             logical port is associated with one logical switch.
-
+short_description: List All Logical Switches
+description: Returns information about all configured logical switches.
 version_added: "2.7"
 author: Rahul Raghuvanshi
 options:
@@ -74,7 +72,7 @@ def main():
 
   changed = False
   try:
-    (rc, resp) = request(manager_url+ '/logical-ports', headers=dict(Accept='application/json'),
+    (rc, resp) = request(manager_url+ '/logical-switches', headers=dict(Accept='application/json'),
                     url_username=mgr_username, url_password=mgr_password, validate_certs=validate_certs, ignore_errors=True)
   except Exception as err:
     module.fail_json(msg='Error accessing list of logical ports. Error [%s]' % (to_native(err)))

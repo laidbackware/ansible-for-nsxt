@@ -1,3 +1,5 @@
+# Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 ---
 #
 # Deploys remaining NSX appliance nodes and forms a cluster. Requires the first
@@ -10,8 +12,8 @@
     - deploy_nsx_cluster_vars.yml
   tasks:
     - name: Deploying additional nodes
-      nsxt_controller_manager_auto_deployment:
-          hostname: "{{ nsx_node1.hostname }}"
+      nsxt_manager_auto_deployment:
+          hostname: "{{ nsx_node1.mgmt_ip }}"
           username: "{{ nsx_username }}"
           password: "{{ nsx_password }}"
           validate_certs: "{{ validate_certs }}"
@@ -26,10 +28,12 @@
             deployment_config:
               placement_type: VsphereClusterNodeVMDeploymentConfig
               vc_name: "{{ compute_managers[0]['display_name'] }}"
-              management_network_id: "{{ item.portgroup_moid }}"
+              vc_username: "{{ compute_managers[0]['username'] }}"
+              vc_password: "{{ compute_managers[0]['password'] }}"
+              management_network: "{{ item.portgroup }}"
               hostname: "{{ item.hostname }}"
-              compute_id: "{{ item.cluster_moid }}"
-              storage_id: "{{ item.datastore_moid }}"
+              compute: "{{ item.cluster }}"
+              storage: "{{ item.datastore }}"
               default_gateway_addresses:
               - "{{ gateway }}"
               dns_servers:

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -103,7 +104,7 @@ options:
         required: false
         type: dict
     description:
-        description: Description of the pre/post-upgrade check
+        description: Description of the resource
         required: false
         type: str
     display_name:
@@ -160,6 +161,22 @@ options:
         description: Type of Logical Router
         required: true
         type: str
+    ipv6_profiles:
+        description: IPv6 Profiles
+        required: false
+        type: dict
+        dad_profile_id:
+            description: DAD profile id
+            required: False
+            type: str
+        ndra_profile_id:
+            description: NDRA profile id
+            required: False
+            type: str
+    tags:
+        description: Opaque identifiers meaningful to the API user
+        required: false
+        type: list
     state:
         choices:
         - present
@@ -237,6 +254,20 @@ def update_params_with_id (module, manager_url, mgr_username, mgr_password, vali
         logical_router_params['edge_cluster_id'] = get_id_from_display_name (module, manager_url,
                                                                                 mgr_username, mgr_password, validate_certs,
                                                                                 "/edge-clusters", edge_cluster_name)
+    if logical_router_params.__contains__('ipv6_profiles'):
+        if logical_router_params['ipv6_profiles'].__contains__('dad_profile_name'):
+            dad_profile_name = logical_router_params['ipv6_profiles'].pop('dad_profile_name')
+            logical_router_params['ipv6_profiles']['dad_profile_id'] = get_id_from_display_name (module, manager_url,
+                                                                                                   mgr_username, mgr_password, 
+                                                                                                   validate_certs,
+                                                                                                   "/ipv6/dad-profiles", dad_profile_name)
+        if logical_router_params['ipv6_profiles'].__contains__('ndra_profile_name'):
+            ndra_profile_name = logical_router_params['ipv6_profiles'].pop('ndra_profile_name')
+            logical_router_params['ipv6_profiles']['ndra_profile_id'] = get_id_from_display_name (module, manager_url,
+                                                                                                   mgr_username, mgr_password, 
+                                                                                                   validate_certs,
+                                                                                                   "/ipv6/nd-ra-profiles",
+                                                                                                  ndra_profile_name)
     if logical_router_params.__contains__('advanced_config') and logical_router_params['advanced_config'].__contains__('transport_zone_name'):
         transport_zone_name= logical_router_params['advanced_config'].pop('transport_zone_name', None)
         logical_router_params['advanced_config']['transport_zone_id'] = get_id_from_display_name (module, manager_url,
@@ -285,6 +316,10 @@ def main():
                         preferred_edge_cluster_member_index=dict(required=False, type='int'),
                         high_availability_mode=dict(required=False, type='str'),
                         edge_cluster_name=dict(required=False, type='str'),
+                        tags=dict(required=False, type='list'),
+                        ipv6_profiles=dict(required=False, type='dict',
+                        dad_profile_name=dict(required=False, type='str'),
+                        ndra_profile_name=dict(required=False, type='str')),
                         resource_type=dict(required=False, type='str', choices=['LogicalRouter']),
                         state=dict(required=True, choices=['present', 'absent']))
 

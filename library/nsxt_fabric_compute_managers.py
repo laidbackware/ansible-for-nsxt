@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -83,10 +84,20 @@ options:
         description: 'Compute manager type like vCenter'
         required: true
         type: str
+    description:
+        description: 'Description of the resource'
+        required: false
+        type: str
     server:
         description: 'IP address or hostname of compute manager'
         required: true
         type: str
+    set_as_oidc_provider:
+        description: "Specifies whether compute manager has been set as OIDC provider
+                        If the compute manager is VC and need to set set as OIDC provider for NSX then
+                        this flag should be set as true. This is specific to TKGS. NSX-T 3.0 only"
+        required: false
+        type: bool
     state:
         choices:
             - present
@@ -108,6 +119,7 @@ EXAMPLES = '''
     validate_certs: False
     display_name: "vCenter"
     server: "10.161.244.213"
+    description: "Description of the resource"
     origin_type: vCenter
     credential:
       credential_type: "UsernamePasswordLoginCredential"
@@ -152,7 +164,11 @@ def get_thumb(module):
       #Thumbprint
       thumb_sha256 = hashlib.sha256(der_cert_bin).hexdigest()
       wrappedSocket.close()
-      return ':'.join(a+b for a,b in zip(thumb_sha256[::2], thumb_sha256[1::2]))
+      # The API call expects the Thumbprint in Uppercase. While the API call is fixed,
+      # below is a quick fix
+      thumbprint = ""
+      thumbprint = ':'.join(a+b for a,b in zip(thumb_sha256[::2], thumb_sha256[1::2]))
+      return thumbprint.upper()
 
 def get_fabric_compute_managers(module, manager_url, mgr_username, mgr_password, validate_certs):
     try:
@@ -171,6 +187,7 @@ def get_compute_manager_from_display_name(module, manager_url, mgr_username, mgr
 
 def wait_till_create(id, module, manager_url, mgr_username, mgr_password, validate_certs):
     try:
+      down_counter = 0
       while True:
           (rc, resp) = request(manager_url+ '/fabric/compute-managers/%s/status'% id, headers=dict(Accept='application/json'),
                         url_username=mgr_username, url_password=mgr_password, validate_certs=validate_certs, ignore_errors=True)
@@ -179,6 +196,9 @@ def wait_till_create(id, module, manager_url, mgr_username, mgr_password, valida
           elif resp['registration_status'] == "REGISTERED":
             if resp["connection_status"] == "CONNECTING":
                 time.sleep(10)
+            elif resp["connection_status"] == "DOWN" and down_counter < 3:
+              time.sleep(10)
+              down_counter = down_counter + 1
             elif resp["connection_status"] == "UP":
               time.sleep(5)
               return
@@ -203,24 +223,35 @@ def check_for_update(module, manager_url, mgr_username, mgr_password, validate_c
     existing_compute_manager = get_compute_manager_from_display_name(module, manager_url, mgr_username, mgr_password, validate_certs, compute_manager_with_ids['display_name'])
     if existing_compute_manager is None:
         return False
+    if not existing_compute_manager.__contains__('description') and compute_manager_with_ids.__contains__('description'):
+        return True
+    if existing_compute_manager.__contains__('description') and compute_manager_with_ids.__contains__('description') and \
+        existing_compute_manager['description'] != compute_manager_with_ids['description']:
+        return True
     if existing_compute_manager['server'] != compute_manager_with_ids['server'] or \
-        existing_compute_manager['credential']['thumbprint'] != compute_manager_with_ids['credential']['thumbprint']:
+        existing_compute_manager['credential']['thumbprint'] != compute_manager_with_ids['credential']['thumbprint'] or \
+        existing_compute_manager['origin_type'] != compute_manager_with_ids['origin_type']:
+        return True
+    if existing_compute_manager.__contains__('set_as_oidc_provider') and compute_manager_with_ids.__contains__('set_as_oidc_provider') and \
+        existing_compute_manager['set_as_oidc_provider'] != compute_manager_with_ids['set_as_oidc_provider']:
         return True
     return False
 
 def main():
   argument_spec = vmware_argument_spec()
   argument_spec.update(display_name=dict(required=True, type='str'),
-                    credential=dict(required=False, type='dict',
+                    credential=dict(required=False, type='dict', no_log=True,
                     username=dict(required=False, type='str'),
-                    password=dict(required=False, type='str', no_log=True),
-                    thumbprint=dict(required=False, type='str', no_log=True),
+                    password=dict(required=False, type='str'),
+                    thumbprint=dict(required=False, type='str'),
                     asymmetric_credential=dict(required=False, type='str'),
                     credential_verifier=dict(required=False, type='str'),
                     credential_key=dict(required=False, type='str', no_log=True),
                     credential_type=dict(required=True, type='str')),
                     origin_type=dict(required=True, type='str'),
+                    description=dict(required=False, type='str'),
                     server=dict(required=True, type='str'),
+                    set_as_oidc_provider=dict(required=False, type='bool'),
                     state=dict(required=True, choices=['present', 'absent']))
 
   module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)

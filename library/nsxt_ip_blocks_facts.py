@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 # 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -10,16 +11,15 @@
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 import json
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.vmware_nsxt import vmware_argument_spec, request
 from ansible.module_utils.urls import open_url, fetch_url
 from ansible.module_utils._text import to_native
 from ansible.module_utils.six.moves.urllib.error import HTTPError
-
-
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
