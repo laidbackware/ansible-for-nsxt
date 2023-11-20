@@ -1,0 +1,132 @@
+---
+- name: Firewall tests
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - vmware.ansible_for_nsxt
+  vars:
+    hostname: "{{ lookup('ansible.builtin.env', 'NSX_MANAGER_IP') }}"
+    username: "{{ lookup('ansible.builtin.env', 'NSX_USERNAME') }}"
+    password: "{{ lookup('ansible.builtin.env', 'NSX_PASSWORD') }}"
+    sequence: "1-55"
+    label_prefix: "ANSIBLE_INTEGRATION_TESTING"
+  tasks:
+    - name: Create ip set
+      nsxt_ip_sets:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_ips-{{ item }}"
+        ip_addresses:
+        - "1.1.1.1"
+        state: "present"
+      with_sequence:
+        - "{{ sequence }}"
+
+    - name: Add NS Group with static members
+      nsxt_ns_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_nsgroup-{{ item }}"
+        resource_type: NSGroup
+        state: "present"
+        members:
+          - resource_type: NSGroupSimpleExpression
+            target_property: id
+            op: EQUALS
+            target_type: IPSet
+            value: "{{ label_prefix }}_ips-{{ item }}"
+      with_sequence:
+        - "{{ sequence }}"
+
+    - name: Create service
+      nsxt_services:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_svc-{{ item }}"
+        nsservice_element:
+            destination_ports:
+            - '8443'
+            l4_protocol: TCP
+            resource_type: L4PortSetNSService
+        state: "present"
+      with_sequence:
+        - "{{ sequence }}"
+
+    - name: Add Distributed Firewall Section with Rules
+      nsxt_firewall_section_with_rules:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_section-{{ item}}"
+        state: present
+        section_type: LAYER3
+        rules:
+        - display_name: "rule1"
+          description: Testing
+          action: ALLOW
+          applied_tos:
+          - target_display_name: "{{ label_prefix }}_nsgroup-{{ item }}"
+            target_type: NSGroup
+          destinations: 
+          - target_display_name: "{{ label_prefix }}_ips-{{ item }}"
+            target_type: IPSet
+          sources: 
+          - target_display_name: "{{ label_prefix }}_nsgroup-{{ item }}"
+            target_type: NSGroup
+          services: 
+          - target_display_name: "{{ label_prefix }}_svc-{{ item }}"
+            target_type: NSService
+      with_sequence:
+        - "{{ sequence }}"
+
+    - name: Delete Distributed Firewall Section with Rules
+      nsxt_firewall_section_with_rules:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_section-{{ item}}"
+        state: absent
+      with_sequence:
+        - "{{ sequence }}"
+
+    - name: Delete service
+      nsxt_services:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_svc-{{ item }}"
+        state: "absent"
+      with_sequence:
+        - "{{ sequence }}"
+
+    - name: Delete NS Group with static members
+      nsxt_ns_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_nsgroup-{{ item }}"
+        resource_type: NSGroup
+        state: "absent"
+      with_sequence:
+        - "{{ sequence }}"
+
+    - name: Delete ip set
+      nsxt_ip_sets:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        display_name: "{{ label_prefix }}_ips-{{ item }}"
+        state: "absent"
+      with_sequence:
+        - "{{ sequence }}"

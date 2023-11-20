@@ -1,5 +1,40 @@
 # Ansible for NSX-T
 
+# FORK
+
+This fork includes modules to create firewall rules using the manager API, which have not been accepted upstream.
+
+## FORK Testing
+
+Copy modules over any existing collection:
+```sh
+rm -rf $HOME/.ansible/collections/ansible_collections/vmware/ansible_for_nsxt && \
+  mkdir -p $HOME/.ansible/collections/ansible_collections/vmware/ansible_for_nsxt/ && \
+  cp -R * $HOME/.ansible/collections/ansible_collections/vmware/ansible_for_nsxt/
+```
+
+Export environment variables to a licensed NSX Manager:
+```sh
+export NSX_MANAGER_IP="192.168.0.100"
+export NSX_USERNAME="admin"
+export NSX_PASSWORD="VMware1!VMware1!"
+```
+
+(optional) Speed up tests by reducing sleep time
+```sh
+sed -i 's/sleep(5)/sleep(0.1)/g' $HOME/.ansible/collections/ansible_collections/vmware/ansible_for_nsxt/plugins/modules/*
+```
+
+Run tests:
+```sh
+ansible-playbook tests/playbooks/firewall_integration_tests.yml
+```
+
+(optional) Reset sleep time
+```sh
+sed -i 's/sleep(0.1)/sleep(5)/g' $HOME/.ansible/collections/ansible_collections/vmware/ansible_for_nsxt/plugins/modules/*
+```
+
 ## Overview
 This repository contains NSX-T Ansible Modules, which one can use with
 Ansible to work with [VMware NSX-T Data Center][vmware-nsxt].
